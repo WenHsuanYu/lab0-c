@@ -8,6 +8,8 @@ fmtscan
 core*
 .cmd_history
 .out
+managed_context/
+test_suite_analysis/
 
 # ctags files
 TAGS
