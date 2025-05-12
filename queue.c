@@ -4,6 +4,10 @@
 
 #include "queue.h"
 
+#ifndef strlcpy
+#define strlcpy(dst, sr, sz) snprintf(dst, sz, "%s", sr)
+#endif
+
 /* Create an empty queue */
 struct list_head *q_new()
 {
@@ -79,7 +83,16 @@ bool q_insert_tail(struct list_head *head, char *s)
 /* Remove an element from head of queue */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    if (!head || list_empty(head))
+        return NULL;
+
+    element_t *item = list_first_entry(head, element_t, list);
+    list_del(&item->list);
+
+    if (sp && bufsize)
+        strlcpy(sp, item->value, bufsize);
+
+    return item;
 }
 
 /* Remove an element from tail of queue */
