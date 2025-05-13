@@ -284,10 +284,35 @@ int q_descend(struct list_head *head)
     return count;
 }
 
+
 /* Merge all the queues into one sorted queue, which is in ascending/descending
  * order */
 int q_merge(struct list_head *head, bool descend)
 {
     // https://leetcode.com/problems/merge-k-sorted-lists/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+
+    if (list_is_singular(head))
+        return q_size(list_first_entry(head, queue_contex_t, chain)->q);
+
+    queue_contex_t *first = list_first_entry(head, queue_contex_t, chain);
+    int size = q_size(first->q);
+
+    queue_contex_t *second =
+        list_entry(first->chain.next, queue_contex_t, chain);
+    queue_contex_t *end = NULL;
+
+    while (second != end) {
+        size += q_size(second->q);
+        q_merge_twolists(first->q, second->q, descend);
+
+        if (!end)
+            end = second;
+
+        list_move_tail(&second->chain, head);
+        second = list_entry(first->chain.next, queue_contex_t, chain);
+    }
+
+    return size;
 }
