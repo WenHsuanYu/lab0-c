@@ -195,8 +195,46 @@ void q_reverseK(struct list_head *head, int k)
     }
 }
 
+void q_merge_twolists(struct list_head *l, struct list_head *r, bool flag)
+{
+    if (!l || !r)
+        return;
+    /* flag: 0 for descend and 1 for ascend */
+    int ascend = flag ? 1 : -1;
+    LIST_HEAD(tmp);
+    while (!list_empty(l) && !list_empty(r)) {
+        element_t *l_item = list_first_entry(l, element_t, list);
+        element_t *r_item = list_first_entry(r, element_t, list);
+        if (strcmp(l_item->value, r_item->value) * ascend >= 0) {
+            list_move_tail(&l_item->list, &tmp);
+        } else {
+            list_move_tail(&r_item->list, &tmp);
+        }
+    }
+    list_splice_init(&tmp, l);
+    list_splice_tail_init(r, l);
+}
+
 /* Sort elements of queue in ascending/descending order */
-void q_sort(struct list_head *head, bool descend) {}
+void q_sort(struct list_head *head, bool descend)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+    struct list_head *left = head->next;
+    struct list_head *right = head->prev;
+    while (left != right && left->next != right) {
+        left = left->next;
+        right = right->prev;
+    }
+    struct list_head *mid = left;
+    LIST_HEAD(r);
+    list_cut_position(&r, mid, head->prev);
+
+    q_sort(head, descend);
+    q_sort(&r, descend);
+
+    q_merge_twolists(head, &r, descend);
+}
 
 /* Remove every node which has a node with a strictly less value anywhere to
  * the right side of it */
