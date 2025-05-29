@@ -25,6 +25,7 @@
 
 /* Shannon entropy */
 extern double shannon_entropy(const uint8_t *input_data);
+extern bool q_shuffle(struct list_head *head);
 extern int show_entropy;
 
 /* Our program needs to use regular malloc/free */
@@ -997,6 +998,29 @@ static bool q_show(int vlevel)
     return ok;
 }
 
+static bool do_shuffle(int argc, char *argv[])
+{
+    if (argc != 1) {
+        report(1, "%s takes no arguments", argv[0]);
+        return false;
+    }
+
+    if (!current || !current->q) {
+        report(3, "Warning: Try to shuffle null queue");
+        return false;
+    }
+
+    bool ret = q_shuffle(current->q);
+    if (!ret) {
+        report(3, "Warning: Shuffle failed");
+        return false;
+    }
+
+    q_show(3);
+    return true;
+}
+
+
 static bool do_show(int argc, char *argv[])
 {
     if (argc != 1) {
@@ -1096,6 +1120,7 @@ static void console_init()
                 "");
     ADD_COMMAND(reverseK, "Reverse the nodes of the queue 'K' at a time",
                 "[K]");
+    ADD_COMMAND(shuffle, "Shuffle the queue", "");
     add_param("length", &string_length, "Maximum length of displayed string",
               NULL);
     add_param("malloc", &fail_probability, "Malloc failure probability percent",

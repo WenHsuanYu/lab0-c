@@ -1,8 +1,10 @@
+#include "queue.h"
+#include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "queue.h"
+#include "random.h"
 
 #ifndef strlcpy
 #define strlcpy(dst, sr, sz) snprintf(dst, sz, "%s", sr)
@@ -315,4 +317,51 @@ int q_merge(struct list_head *head, bool descend)
     }
 
     return size;
+}
+
+uint8_t q_random()
+{
+    uint32_t tmp;
+    randombytes((uint8_t *) &tmp, sizeof(tmp));
+    return tmp;
+}
+
+bool q_shuffle(struct list_head *head)
+{
+    if (!head || list_empty(head))
+        return false;
+
+    int len = q_size(head);
+
+    struct list_head **pos = malloc(sizeof(*pos) * len);
+    /* check if malloc failed */
+    if (!pos)
+        return false;
+
+    struct list_head *node;
+    int i = 0;
+    list_for_each(node, head)
+        pos[i++] = node;
+
+    /* Fisher-Yates shuffle */
+    for (i = len - 1; i > 0; i--) {
+        int idx;
+        do {
+            idx = q_random() & INT_MAX;
+        } while (idx >= INT_MAX - (INT_MAX % (i + 1)));
+        idx %= i + 1;
+
+        struct list_head *temp = pos[i];
+        pos[i] = pos[idx];
+        pos[idx] = temp;
+    }
+
+    /* Rebuild the list */
+    INIT_LIST_HEAD(head);
+    for (i = 0; i < len; i++) {
+        list_add_tail(pos[i], head);
+    }
+
+    free(pos);
+    return true;
 }
